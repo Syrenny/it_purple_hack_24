@@ -18,10 +18,21 @@ def parse_questions(parser, url, questions_folder):
         try:
             text_path = os.path.join(questions_folder, f'text{saved_cnt}.txt')
             text_file = open(text_path, 'wb')
-            question_phrase_tag = question_container.find('div', class_='question_title').find('h3 h2')
+            question_phrase_tag = question_container.find('div', class_='question_title').find('h3')
+            if question_phrase_tag == None:
+                question_phrase_tag = question_container.find('div', class_='question_title').find('h2')
+            if question_phrase_tag == None:
+                question_phrase_tag = question_container.find('div', class_='question_title').find('h4')
+            if question_phrase_tag == None:
+                question_phrase_tag = question_container.find('div', class_='question_title').find('h5')
+            if question_phrase_tag == None:
+                question_phrase_tag = question_container.find('div', class_='question_title').find('h1')
+
+
             check_paragraph_tag = question_phrase_tag.find('p')
             if check_paragraph_tag != None:
                 question_phrase_tag = check_paragraph_tag
+
             question_phrase = question_phrase_tag.text
             text_block = question_container.find('div', class_='additional-text-block')
             data_tags = text_block.find_all('p ul li ol')
@@ -79,13 +90,13 @@ def get_all_questions(url, questions_folder):
     rubric_names = []
     for rubric in rubrics:
         rubric_links.append(urljoin(url, rubric.a['href']))
-        rubric_names.append(urljoin(url, rubric.a.text))
+        rubric_names.append(rubric.a.text)
 
     # обрабатываем каждую рубрику
     for rubric_link, rubric_name in zip(rubric_links, rubric_names):
-        print(rubric_name)
         rubric_page = requests.get(rubric_link)
         rubric_parser = BeautifulSoup(rubric_page.text, 'html.parser')
+        print(rubric_name)
         parse_dropdown_containers(rubric_parser, rubric_link, questions_folder)
         
 
